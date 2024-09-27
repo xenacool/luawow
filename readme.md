@@ -1,4 +1,128 @@
-# Foxtrot
+# Luawow
+Luawow is a coding game designed as a first introduction to programming.
+
+```lua
+-- Entity and Element management
+function createEntity(entityType, x, y, z)
+-- Create an entity (player, enemy, machine, etc.) at the specified position
+return entityId
+end
+
+function getEntityPosition(entityId)
+-- Get the current position of an entity
+return x, y, z
+end
+
+function setEntityPosition(entityId, x, y, z)
+-- Set the position of an entity
+end
+
+function rotateEntity(entityId, yaw, pitch, roll)
+-- Rotate an entity
+end
+
+function createElement(elementType, amount, sourceId)
+-- Create a specified amount of an element, optionally from a source entity
+return elementId
+end
+
+function transformElement(sourceElementId, targetElementType, amount)
+-- Transform one element into another
+return targetElementId
+end
+
+-- Spell creation and control
+function createSpell(name, elements, effects)
+-- Create a spell with specified elements and effects
+return spellId
+end
+
+function castSpell(spellId, casterId, targetId)
+-- Cast a spell from one entity to another (or to a position)
+end
+
+function createProjectile(spellId, size, casterId)
+-- Create a projectile based on a spell
+return projectileId
+end
+
+function setProjectileProperties(projectileId, speed, homingStrength)
+-- Set properties of a projectile
+end
+
+function fireProjectile(projectileId, targetId)
+-- Fire a projectile at a target entity or position
+end
+
+-- Environment interaction
+function detectEntities(sourceId, radius, entityType)
+-- Detect entities of a specific type within the specified radius
+return entityList
+end
+
+function getClosestEntity(sourceId, entityType)
+-- Get the closest entity of a specific type to the source
+return entityId
+end
+
+function applyElementalEffect(elementId, targetId)
+-- Apply an elemental effect to a target entity
+end
+
+-- Automation and machinery
+function createMachine(machineType, x, y, z)
+-- Create a machine (conveyor, elemental extractor, spell caster, etc.)
+return machineId
+end
+
+function setMachineProgram(machineId, program)
+-- Set a program for a machine to execute
+end
+
+function getEnvironmentalElementSource(elementType, x, y, z)
+-- Get or create an environmental source of an element at the specified position
+return sourceId
+end
+
+-- Utility functions
+function wait(frames)
+-- Wait for the specified number of frames
+end
+
+function getElementalFuel(entityId, elementType)
+-- Get the current amount of elemental fuel for the specified entity and element
+return fuelAmount
+end
+
+-- Example usage:
+function setupAutomatedLightningCaster()
+    local extractorAir = createMachine("extractor", 0, 0, 0)
+    local extractorWater = createMachine("extractor", 5, 0, 0)
+    local spellCaster = createMachine("spellcaster", 2.5, 0, 5)
+
+    local airSource = getEnvironmentalElementSource("air", 0, 0, 0)
+    local waterSource = getEnvironmentalElementSource("water", 5, 0, 0)
+    local function extractAndCastLightning()
+        local air = createElement("air", 50, airSource)
+        local water = createElement("water", 25, waterSource)
+        local lightning = transformElement(air, "lightning", 50)
+        local lightningBolt = createSpell("LightningBolt", {lightning}, {"damage", "stun"})
+        
+        local target = getClosestEntity(spellCaster, "enemy")
+        if target then
+            castSpell(lightningBolt, spellCaster, target)
+        end
+        
+        wait(100)  -- Wait 100 frames before casting again
+    end
+
+    setMachineProgram(extractorAir, function() createElement("air", 10, airSource) end)
+    setMachineProgram(extractorWater, function() createElement("water", 5, waterSource) end)
+    setMachineProgram(spellCaster, extractAndCastLightning)
+end
+```
+
+# (Original template)Foxtrot
 
 The all-in-one Bevy 3D game template.
 
