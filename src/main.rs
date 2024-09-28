@@ -1,9 +1,17 @@
-// disable console on windows for release builds
-#![cfg_attr(not(feature = "dev"), windows_subsystem = "windows")]
+use bevy::prelude::{App, DefaultPlugins, Reflect};
+use bevy_editor_pls::{AddEditorWindow, EditorPlugin};
+use bevy_save::SavePlugins;
+use crate::zone_editor::ZoneEditorWindow;
 
-use bevy::prelude::*;
-use luawow::GamePlugin;
+mod zone_editor;
+
+#[derive(Reflect)]
+pub struct ZoneCollection;
 
 fn main() {
-    App::new().add_plugins(GamePlugin).run();
+    App::new()
+        .add_plugins((DefaultPlugins, EditorPlugin::new(), SavePlugins))
+        .register_type::<ZoneCollection>()
+        .add_editor_window::<ZoneEditorWindow>()
+        .run();
 }
