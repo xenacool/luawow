@@ -1740,7 +1740,7 @@ dependencies = [
 [[package]]
 name = "bevy_save"
 version = "0.14.0"
-source = "git+https://github.com/xenacool/bevy_save.git#631ad4a53075e90bb3ab4d3d1c4212195278e21b"
+source = "git+https://github.com/xenacool/bevy_save.git#0d14080f32b7010786d5357225f1dc09214756fa"
 dependencies = [
  "bevy 0.14.2",
  "fragile",

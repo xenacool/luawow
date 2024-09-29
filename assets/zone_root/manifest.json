@@ -1,0 +1,9 @@
+{
+  "entities": {},
+  "resources": {
+    "luawow::zone_editor::ZoneCollectionManifest": {
+      "start_zone": 0,
+      "zones_with_transforms": []
+    }
+  }
+}
