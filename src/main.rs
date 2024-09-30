@@ -1,7 +1,10 @@
+use core::iter::Iterator;
+use std::env;
+use std::path::Path;
 use bevy::diagnostic::{EntityCountDiagnosticsPlugin, FrameTimeDiagnosticsPlugin};
 use bevy::pbr::DirectionalLightShadowMap;
-use bevy::prelude::{App, Camera, Camera3dBundle, Commands, DefaultPlugins, Plugin, Startup, Transform, Vec3};
-use bevy_editor_pls::{AddEditorWindow, EditorPlugin};
+use bevy::prelude::{info, warn, App, Camera, Camera3dBundle, Commands, DefaultPlugins, Startup, Transform, Vec3};
+use bevy_editor_pls::EditorPlugin;
 use bevy_mod_picking::DefaultPickingPlugins;
 use bevy_save::SavePlugins;
 use world_editor::WorldEditorPlugin;
@@ -16,12 +19,26 @@ fn main() {
                       SavePlugins,
                       DefaultPickingPlugins,
                       #[cfg(feature = "dev")]
-                      FrameTimeDiagnosticsPlugin::default(), EntityCountDiagnosticsPlugin::default(),
+                      FrameTimeDiagnosticsPlugin::default(),
+                      #[cfg(feature = "dev")]
+                      EntityCountDiagnosticsPlugin::default(),
                       WorldEditorPlugin::default(),
                      ),
         )
         .insert_resource(DirectionalLightShadowMap { size: 4096 })
         .add_systems(Startup, setup_ui);
+
+    info!("Starting luawow");
+    let args: Vec<String> = env::args().collect();
+    let zone_root = "--zone-root";
+    if let Some(zone_root_arg_index) = args.iter().position(|e| e == zone_root) {
+        info!("Found zone root arg index {}", zone_root_arg_index);
+        assert!(args.len() > zone_root_arg_index + 1, "Expected argument after --zone-root");
+        let path = Path::new(&args[zone_root_arg_index + 1]);
+        assert!(path.exists(), "Expected folder to exist but \"{}\" doesn't exist", path.to_str().unwrap());
+    } else {
+        warn!("No --zone-root selected, starting editor only");
+    }
 
     app.run();
 }

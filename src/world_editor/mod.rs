@@ -1,10 +1,9 @@
 use std::path::PathBuf;
-use bevy::asset::AssetServer;
 use bevy::ecs::system::RunSystemOnce;
 use egui_file_dialog::FileDialog;
 
-use bevy::prelude::{info, Commands, Resource, DirectAssetAccessExt, DynamicScene, DynamicSceneBundle, Query, Reflect, ReflectComponent, ReflectResource, Res, ResMut, Transform, World};
-use bevy::utils::{info, HashMap};
+use bevy::prelude::{info, Resource, Reflect, ReflectResource, Res, ResMut, Transform, World};
+use bevy::utils::HashMap;
 use bevy_editor_pls::editor_window::{EditorWindow, EditorWindowContext};
 use bevy_editor_pls::egui::Ui;
 use bevy_save::{Backend, Error, FileIO, JSONFormat, Pipeline, Snapshot, SnapshotBuilder, WorldSaveableExt};
@@ -169,11 +168,11 @@ impl EditorWindow for WorldEditorWindow {
 }
 
 mod test {
-    use bevy::ecs::system::RunSystemOnce;
-    use crate::world_editor::{TileData, TransformZoneManifest, WorldManifest, WorldManifestPipeline, ZoneManifest};
-    use bevy::prelude::{App, Query, Res};
+    
+    use crate::world_editor::{TileData, TransformZoneManifest, WorldManifest, ZoneManifest};
+    use bevy::prelude::App;
     use bevy::MinimalPlugins;
-    use bevy_save::{SavePlugins, WorldSaveableExt};
+    use bevy_save::SavePlugins;
 
     #[test]
     fn test_save_run_over_run() {
