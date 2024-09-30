@@ -3,12 +3,31 @@ use bevy::asset::AssetServer;
 use bevy::ecs::system::RunSystemOnce;
 use egui_file_dialog::FileDialog;
 
-use bevy::prelude::{info, Commands, Component, DirectAssetAccessExt, DynamicScene, DynamicSceneBundle, Query, Reflect, ReflectComponent, Res, Resource, ReflectResource, Transform, World, ResMut};
+use bevy::prelude::{info, Commands, Component, DirectAssetAccessExt, DynamicScene, DynamicSceneBundle, Query, Reflect, ReflectComponent, ReflectResource, Res, ResMut, Resource, Transform, World};
 use bevy::utils::HashMap;
 use bevy_editor_pls::editor_window::{EditorWindow, EditorWindowContext};
 use bevy_editor_pls::egui::Ui;
 use bevy_save::{Backend, Error, FileIO, JSONFormat, Pipeline, Snapshot, SnapshotBuilder, WorldSaveableExt};
+use bevy::app::{App, Plugin};
+use bevy_editor_pls::AddEditorWindow;
 
+
+
+
+#[derive(Default)]
+pub struct WorldEditorPlugin;
+
+impl Plugin for WorldEditorPlugin {
+    fn build(&self, app: &mut App) {
+        app.insert_resource(ZoneLoader::default())
+            .register_type::<ZoneLoader>()
+            .register_type::<TileData>()
+            .register_type::<ZoneManifest>()
+            .register_type::<TransformZoneManifest>()
+            .register_type::<WorldManifest>()
+            .add_editor_window::<WorldEditorWindow>();
+    }
+}
 
 #[derive(Component, Reflect, Default, Clone)]
 #[reflect(Component)]
@@ -122,8 +141,8 @@ impl EditorWindow for WorldEditorWindow {
             if folder_exists && manifest_exists {
                 if ui.button("load zone").clicked() {
                     world.load(WorldManifestPipeline { file: manifest_path_str.clone() }).expect("failed to load zone collection");
-                    world.run_system_once(|mut commands: Commands, mut zone_loader: ResMut<ZoneLoader>, q: Query<&WorldManifest>| {
-                        zone_loader.manifest = q.single().clone();
+                    world.run_system_once(|mut zone_loader: ResMut<ZoneLoader>| {
+                        info!("marking zone loader as dirty");
                         zone_loader.dirty = true;
                     });
                 }
@@ -147,7 +166,7 @@ impl EditorWindow for WorldEditorWindow {
 mod test {
     use bevy::ecs::system::RunSystemOnce;
     use crate::world_editor::{TileData, TransformZoneManifest, WorldManifest, WorldManifestPipeline, ZoneManifest};
-    use bevy::prelude::{App, Query, Update};
+    use bevy::prelude::{App, Query};
     use bevy::MinimalPlugins;
     use bevy_save::{SavePlugins, WorldSaveableExt};
 

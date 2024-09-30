@@ -1,14 +1,12 @@
-use std::sync::{Arc, Mutex};
-use crate::world_editor::{TileData, TransformZoneManifest, WorldManifest, WorldEditorWindow, ZoneManifest, ZoneLoader};
 use bevy::diagnostic::{EntityCountDiagnosticsPlugin, FrameTimeDiagnosticsPlugin};
 use bevy::pbr::DirectionalLightShadowMap;
-use bevy::prelude::{App, Camera, Camera3dBundle, Commands, DefaultPlugins, Startup, Transform, Vec3};
+use bevy::prelude::{App, Camera, Camera3dBundle, Commands, DefaultPlugins, Plugin, Startup, Transform, Vec3};
 use bevy_editor_pls::{AddEditorWindow, EditorPlugin};
 use bevy_mod_picking::DefaultPickingPlugins;
 use bevy_save::SavePlugins;
+use world_editor::WorldEditorPlugin;
 
 mod world_editor;
-
 
 fn main() {
     let mut app = App::new();
@@ -19,17 +17,11 @@ fn main() {
                       DefaultPickingPlugins,
                       #[cfg(feature = "dev")]
                       FrameTimeDiagnosticsPlugin::default(), EntityCountDiagnosticsPlugin::default(),
+                      WorldEditorPlugin::default(),
                      ),
         )
         .insert_resource(DirectionalLightShadowMap { size: 4096 })
-        .insert_resource(ZoneLoader::default())
-        .add_systems(Startup, setup_ui)
-        .register_type::<ZoneLoader>()
-        .register_type::<TileData>()
-        .register_type::<ZoneManifest>()
-        .register_type::<TransformZoneManifest>()
-        .register_type::<WorldManifest>()
-        .add_editor_window::<WorldEditorWindow>();
+        .add_systems(Startup, setup_ui);
 
     app.run();
 }
