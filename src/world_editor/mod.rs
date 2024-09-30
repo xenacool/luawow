@@ -19,7 +19,6 @@ pub struct WorldEditorPlugin;
 impl Plugin for WorldEditorPlugin {
     fn build(&self, app: &mut App) {
         app
-            .insert_resource(WorldManifest::default())
             .insert_resource(ZoneLoader::default())
             .register_type::<ZoneLoader>()
             .register_type::<TileData>()
@@ -107,11 +106,12 @@ impl Pipeline for WorldManifestPipeline {
 
     fn capture(builder: SnapshotBuilder) -> Snapshot {
         builder
-            .extract_resource::<WorldManifest>()
+            .extract_resource::<ZoneLoader>()
             .build()
     }
 
     fn apply(world: &mut World, snapshot: &Snapshot) -> Result<(), Error> {
+        world.remove_resource::<ZoneLoader>();
         snapshot
             .applier(world)
             .apply()
@@ -138,9 +138,8 @@ impl EditorWindow for WorldEditorWindow {
             if folder_exists && manifest_exists {
                 if ui.button("load zone").clicked() {
                     world.load(WorldManifestPipeline { file: manifest_path_str.clone() }).expect("failed to load zone collection");
-                    world.run_system_once(|world_manifest: Res<WorldManifest>, mut zone_loader: ResMut<ZoneLoader>| {
+                    world.run_system_once(|mut zone_loader: ResMut<ZoneLoader>| {
                         info!("marking zone loader as dirty");
-                        zone_loader.manifest = world_manifest.clone();
                         zone_loader.dirty = true;
                     });
                 }
@@ -168,20 +167,16 @@ impl EditorWindow for WorldEditorWindow {
 }
 
 mod test {
-    
-    use crate::world_editor::{TileData, TransformZoneManifest, WorldManifest, ZoneManifest};
-    use bevy::prelude::App;
+    use bevy::ecs::system::RunSystemOnce;
+    use crate::world_editor::{TileData, TransformZoneManifest, WorldManifest, WorldManifestPipeline, ZoneLoader, ZoneManifest};
+    use bevy::prelude::{App, Res};
     use bevy::MinimalPlugins;
-    use bevy_save::SavePlugins;
+    use bevy_save::{SavePlugins, WorldSaveableExt};
 
     #[test]
     fn test_save_run_over_run() {
         let mut app = minimal_app();
         let world = app.world_mut();
-        let world_manifest = WorldManifest {
-            zones_with_transforms: vec![],
-        };
-        world.insert_resource(world_manifest);
         world.save(WorldManifestPipeline { file: "test_saves/reversible/manifest".to_string() }).expect("failed to save");
 
         let mut app2 = minimal_app();
@@ -189,8 +184,8 @@ mod test {
         world2.load(WorldManifestPipeline { file: "test_saves/reversible/manifest".to_string() }).expect("failed to load");
         let entities = world2.entities();
         assert_eq!(entities.total_count(), 0);
-        world2.run_system_once(|q: Res<WorldManifest>| {
-            println!("Found zones with transforms {}", q.zones_with_transforms.len());
+        world2.run_system_once(|q: Res<ZoneLoader>| {
+            println!("Found zones with transforms {}", q.manifest.zones_with_transforms.len());
         });
     }
 
@@ -201,8 +196,8 @@ mod test {
         world2.load(WorldManifestPipeline { file: "test_saves/basic/manifest".to_string() }).expect("failed to load");
         let entities = world2.entities();
         assert_eq!(entities.total_count(), 0);
-        world2.run_system_once(|q: Res<WorldManifest>| {
-            println!("Found zones with transforms {}", q.zones_with_transforms.len());
+        world2.run_system_once(|q: Res<ZoneLoader>| {
+            println!("Found zones with transforms {}", q.manifest.zones_with_transforms.len());
         });
     }
 
@@ -213,9 +208,11 @@ mod test {
                             SavePlugins,
                         ),
         )
+            .insert_resource(ZoneLoader::default())
             .register_type::<TileData>()
             .register_type::<ZoneManifest>()
             .register_type::<TransformZoneManifest>()
+            .register_type::<ZoneLoader>()
             .register_type::<WorldManifest>()
         ;
         app

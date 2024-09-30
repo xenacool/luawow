@@ -1,8 +1,11 @@
 {
   "entities": {},
   "resources": {
-    "luawow::world_editor::WorldManifest": {
-      "zones_with_transforms": []
+    "luawow::world_editor::ZoneLoader": {
+      "manifest": {
+        "zones_with_transforms": []
+      },
+      "dirty": false
     }
   }
 }
