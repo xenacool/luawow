@@ -1,5 +1,5 @@
 use std::sync::{Arc, Mutex};
-use crate::world_editor::{TileData, TransformZoneManifest, WorldManifest, WorldEditorWindow, ZoneManifest};
+use crate::world_editor::{TileData, TransformZoneManifest, WorldManifest, WorldEditorWindow, ZoneManifest, ZoneLoader};
 use bevy::diagnostic::{EntityCountDiagnosticsPlugin, FrameTimeDiagnosticsPlugin};
 use bevy::pbr::DirectionalLightShadowMap;
 use bevy::prelude::{App, Camera, Camera3dBundle, Commands, DefaultPlugins, Startup, Transform, Vec3};
@@ -22,7 +22,9 @@ fn main() {
                      ),
         )
         .insert_resource(DirectionalLightShadowMap { size: 4096 })
+        .insert_resource(ZoneLoader::default())
         .add_systems(Startup, setup_ui)
+        .register_type::<ZoneLoader>()
         .register_type::<TileData>()
         .register_type::<ZoneManifest>()
         .register_type::<TransformZoneManifest>()
