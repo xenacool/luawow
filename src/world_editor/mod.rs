@@ -3,8 +3,8 @@ use bevy::asset::AssetServer;
 use bevy::ecs::system::RunSystemOnce;
 use egui_file_dialog::FileDialog;
 
-use bevy::prelude::{info, Commands, Component, DirectAssetAccessExt, DynamicScene, DynamicSceneBundle, Query, Reflect, ReflectComponent, ReflectResource, Res, ResMut, Resource, Transform, World};
-use bevy::utils::HashMap;
+use bevy::prelude::{info, Commands, Resource, DirectAssetAccessExt, DynamicScene, DynamicSceneBundle, Query, Reflect, ReflectComponent, ReflectResource, Res, ResMut, Transform, World};
+use bevy::utils::{info, HashMap};
 use bevy_editor_pls::editor_window::{EditorWindow, EditorWindowContext};
 use bevy_editor_pls::egui::Ui;
 use bevy_save::{Backend, Error, FileIO, JSONFormat, Pipeline, Snapshot, SnapshotBuilder, WorldSaveableExt};
@@ -19,7 +19,9 @@ pub struct WorldEditorPlugin;
 
 impl Plugin for WorldEditorPlugin {
     fn build(&self, app: &mut App) {
-        app.insert_resource(ZoneLoader::default())
+        app
+            .insert_resource(WorldManifest::default())
+            .insert_resource(ZoneLoader::default())
             .register_type::<ZoneLoader>()
             .register_type::<TileData>()
             .register_type::<ZoneManifest>()
@@ -29,8 +31,8 @@ impl Plugin for WorldEditorPlugin {
     }
 }
 
-#[derive(Component, Reflect, Default, Clone)]
-#[reflect(Component)]
+#[derive(Resource, Reflect, Default, Clone)]
+#[reflect(Resource)]
 pub struct TileData {
     // has to work for asset loader
     tile_data_path: String,
@@ -38,8 +40,8 @@ pub struct TileData {
     dynamic_map: HashMap<String, String>,
 }
 
-#[derive(Component, Reflect, Default, Clone)]
-#[reflect(Component)]
+#[derive(Resource, Reflect, Default, Clone)]
+#[reflect(Resource)]
 pub struct ZoneManifest {
     size_grid_x: u32,
     size_grid_y: u32,
@@ -53,8 +55,8 @@ pub struct ZoneManifest {
     dynamic_scene_path: Option<String>,
 }
 
-#[derive(Component, Reflect, Default, Clone)]
-#[reflect(Component)]
+#[derive(Resource, Reflect, Default, Clone)]
+#[reflect(Resource)]
 pub struct TransformZoneManifest {
     // the parent of every entity in the manifest has this transform applied to it
     // this is external to the manifest so that the overworld can be re-arranged
@@ -69,17 +71,15 @@ pub struct ZoneLoader {
     pub dirty: bool,
 }
 
-#[derive(Component, Reflect, Clone)]
-#[reflect(Component)]
+#[derive(Resource, Reflect, Clone)]
+#[reflect(Resource)]
 pub struct WorldManifest {
-    pub start_zones: Vec<u32>,
     pub zones_with_transforms: Vec<TransformZoneManifest>,
 }
 
 impl Default for WorldManifest {
     fn default() -> Self {
         WorldManifest {
-            start_zones: vec![],
             zones_with_transforms: vec![],
         }
     }
@@ -108,9 +108,7 @@ impl Pipeline for WorldManifestPipeline {
 
     fn capture(builder: SnapshotBuilder) -> Snapshot {
         builder
-            .extract_entities_matching(|entity_ref|
-                entity_ref.contains::<WorldManifest>()
-            )
+            .extract_resource::<WorldManifest>()
             .build()
     }
 
@@ -141,8 +139,15 @@ impl EditorWindow for WorldEditorWindow {
             if folder_exists && manifest_exists {
                 if ui.button("load zone").clicked() {
                     world.load(WorldManifestPipeline { file: manifest_path_str.clone() }).expect("failed to load zone collection");
-                    world.run_system_once(|mut zone_loader: ResMut<ZoneLoader>| {
+                    world.run_system_once(|world_manifest: Res<WorldManifest>, mut zone_loader: ResMut<ZoneLoader>| {
                         info!("marking zone loader as dirty");
+                        zone_loader.manifest = world_manifest.clone();
+                        zone_loader.dirty = true;
+                    });
+                }
+                if ui.button("add zone").clicked() {
+                    world.run_system_once(|mut zone_loader: ResMut<ZoneLoader>| {
+                        zone_loader.manifest.zones_with_transforms.push(TransformZoneManifest::default());
                         zone_loader.dirty = true;
                     });
                 }
@@ -166,7 +171,7 @@ impl EditorWindow for WorldEditorWindow {
 mod test {
     use bevy::ecs::system::RunSystemOnce;
     use crate::world_editor::{TileData, TransformZoneManifest, WorldManifest, WorldManifestPipeline, ZoneManifest};
-    use bevy::prelude::{App, Query};
+    use bevy::prelude::{App, Query, Res};
     use bevy::MinimalPlugins;
     use bevy_save::{SavePlugins, WorldSaveableExt};
 
@@ -175,23 +180,18 @@ mod test {
         let mut app = minimal_app();
         let world = app.world_mut();
         let world_manifest = WorldManifest {
-            start_zones: vec![],
             zones_with_transforms: vec![],
         };
-        world.spawn(world_manifest);
+        world.insert_resource(world_manifest);
         world.save(WorldManifestPipeline { file: "test_saves/reversible/manifest".to_string() }).expect("failed to save");
 
         let mut app2 = minimal_app();
         let world2 = app2.world_mut();
         world2.load(WorldManifestPipeline { file: "test_saves/reversible/manifest".to_string() }).expect("failed to load");
         let entities = world2.entities();
-        assert_eq!(entities.total_count(), 1);
-        world2.run_system_once(|q: Query<&WorldManifest>| {
-            assert_eq!(1, q.iter().len(), "expected 1");
-            for e in &q {
-                println!("Found zones with transforms {}", e.zones_with_transforms.len());
-                println!("Found start zones {}", e.start_zones.len());
-            }
+        assert_eq!(entities.total_count(), 0);
+        world2.run_system_once(|q: Res<WorldManifest>| {
+            println!("Found zones with transforms {}", q.zones_with_transforms.len());
         });
     }
 
@@ -201,13 +201,9 @@ mod test {
         let world2 = app2.world_mut();
         world2.load(WorldManifestPipeline { file: "test_saves/basic/manifest".to_string() }).expect("failed to load");
         let entities = world2.entities();
-        assert_eq!(entities.total_count(), 1);
-        world2.run_system_once(|q: Query<&WorldManifest>| {
-            assert_eq!(1, q.iter().len(), "expected 1");
-            for e in &q {
-                println!("Found zones with transforms {}", e.zones_with_transforms.len());
-                println!("Found start zones {}", e.start_zones.len());
-            }
+        assert_eq!(entities.total_count(), 0);
+        world2.run_system_once(|q: Res<WorldManifest>| {
+            println!("Found zones with transforms {}", q.zones_with_transforms.len());
         });
     }
 

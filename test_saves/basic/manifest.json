@@ -1,14 +1,8 @@
 {
-  "entities": {
-    "4294967296": {
-      "components": {
-        "luawow::world_editor::WorldManifest": {
-          "id": 42,
-          "start_zones": [],
-          "zones_with_transforms": []
-        }
-      }
+  "entities": {},
+  "resources": {
+    "luawow::world_editor::WorldManifest": {
+      "zones_with_transforms": []
     }
-  },
-  "resources": {}
+  }
 }
