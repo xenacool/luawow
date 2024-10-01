@@ -205,11 +205,11 @@ impl EditorWindow for WorldEditorWindow {
 }
 
 mod test {
-    
-    use crate::world_editor::{TileData, TransformZoneManifest, WorldManifest, ZoneLoader, ZoneManifest};
-    use bevy::prelude::App;
+    use bevy::ecs::system::RunSystemOnce;
+    use crate::world_editor::{TileData, TransformZoneManifest, WorldManifest, ZoneLoader, ZoneLoaderPipeline, ZoneManifest};
+    use bevy::prelude::{App, Res};
     use bevy::MinimalPlugins;
-    use bevy_save::SavePlugins;
+    use bevy_save::{SavePlugins, WorldSaveableExt};
 
     #[test]
     fn test_save_run_over_run() {
