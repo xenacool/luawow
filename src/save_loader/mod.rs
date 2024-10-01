@@ -174,14 +174,16 @@ impl EditorWindow for WorldEditorWindow {
                 }
                 if ui.button("load editor manifest from loader (mem)").clicked() {
                     world.run_system_once(|mut zone_loader_editor_state: ResMut<ZoneLoaderEditorState>, zone_loader: Res<ZoneLoader>| {
+                        info!("loading with manifest zones {}", zone_loader.manifest.zones_with_transforms.len());
                         zone_loader_editor_state.manifest = zone_loader.manifest.clone();
                     });
                 }
             }
             if folder_exists {
                 if ui.button("prepare in-memory manifest for persistence (mem)").clicked() {
-                    world.run_system_once(|mut zone_loader: ResMut<ZoneLoader>, zone_loader_editor_state: ResMut<ZoneLoaderEditorState>| {
+                    world.run_system_once(|mut zone_loader: ResMut<ZoneLoader>, zone_loader_editor_state: Res<ZoneLoaderEditorState>| {
                         zone_loader.manifest = zone_loader_editor_state.manifest.clone();
+                        zone_loader.dirty = false;
                     });
                 }
                 if ui.button("write manifest to persistence (disk)").clicked() {
