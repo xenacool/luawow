@@ -513,7 +513,7 @@ dependencies = [
  "bevy_utils 0.14.2",
  "bevy_window 0.14.2",
  "bytemuck",
- "egui 0.28.1",
+ "egui",
  "fuzzy-matcher",
  "image 0.24.9",
  "once_cell",
@@ -1024,7 +1024,7 @@ dependencies = [
  "bevy 0.14.2",
  "bevy_editor_pls_core",
  "bevy_editor_pls_default_windows",
- "egui 0.28.1",
+ "egui",
  "transform-gizmo-bevy",
 ]
 
@@ -1067,7 +1067,7 @@ dependencies = [
  "bytemuck",
  "console_log",
  "crossbeam-channel",
- "egui 0.28.1",
+ "egui",
  "js-sys",
  "log",
  "thread_local",
@@ -1089,7 +1089,7 @@ dependencies = [
  "bytemuck",
  "console_log",
  "crossbeam-channel",
- "egui 0.28.1",
+ "egui",
  "js-sys",
  "log",
  "thread_local",
@@ -3325,16 +3325,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "2e6b451ff1143f6de0f33fc7f1b68fecfd2c7de06e104de96c4514de3f5396f8"
 dependencies = [
  "bytemuck",
- "emath 0.28.1",
-]
-
-[[package]]
-name = "ecolor"
-version = "0.29.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "5629649a8ae57c73f175f4a96419905a8102cfbfcbce96ea25a826bbf468e990"
-dependencies = [
- "emath 0.29.0",
+ "emath",
 ]
 
 [[package]]
@@ -3344,20 +3335,8 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "20c97e70a2768de630f161bb5392cbd3874fcf72868f14df0e002e82e06cb798"
 dependencies = [
  "ahash",
- "emath 0.28.1",
- "epaint 0.28.1",
- "nohash-hasher",
-]
-
-[[package]]
-name = "egui"
-version = "0.29.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "26bab3b3572566257a497b5f87d2cccaf7f7f122d4b8b620cba0493becc7955e"
-dependencies = [
- "ahash",
- "emath 0.29.0",
- "epaint 0.29.0",
+ "emath",
+ "epaint",
  "nohash-hasher",
 ]
 
@@ -3368,7 +3347,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "32eeabfc7f7204e6bb45d3394d16c2611a858f742e910d9e2e0a31dae65779e4"
 dependencies = [
  "directories",
- "egui 0.28.1",
+ "egui",
  "serde",
  "sysinfo 0.31.4",
 ]
@@ -3380,7 +3359,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "629a8b0e440d69996795669ceacc0dd839a997843489273600d31d16c9cb3500"
 dependencies = [
  "duplicate",
- "egui 0.28.1",
+ "egui",
  "paste",
 ]
 
@@ -3398,12 +3377,6 @@ checksum = "0a6a21708405ea88f63d8309650b4d77431f4bc28fb9d8e6f77d3963b51249e6"
 dependencies = [
  "bytemuck",
 ]
-
-[[package]]
-name = "emath"
-version = "0.29.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "af86c4efae11da2a3dcbb4afebd0e9ed1916345e8d187b4051d443c8bd79af93"
 
 [[package]]
 name = "encase"
@@ -3511,32 +3484,11 @@ dependencies = [
  "ab_glyph",
  "ahash",
  "bytemuck",
- "ecolor 0.28.1",
- "emath 0.28.1",
+ "ecolor",
+ "emath",
  "nohash-hasher",
  "parking_lot 0.12.3",
 ]
-
-[[package]]
-name = "epaint"
-version = "0.29.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "445e11ec86a4d85e1350578ba20b2d89977ed937f3faab32e1c3ec81d20c1842"
-dependencies = [
- "ab_glyph",
- "ahash",
- "ecolor 0.29.0",
- "emath 0.29.0",
- "epaint_default_fonts",
- "nohash-hasher",
- "parking_lot 0.12.3",
-]
-
-[[package]]
-name = "epaint_default_fonts"
-version = "0.29.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "5202b64bef2b2c42a7f6e2e5b40fa83dd04aa61fdb08bfd116553adc149fe47a"
 
 [[package]]
 name = "equivalent"
@@ -4685,7 +4637,6 @@ dependencies = [
  "bevy_spatial",
  "bevy_yarnspinner",
  "bevy_yarnspinner_example_dialogue_view",
- "egui 0.29.0",
  "egui-file-dialog",
  "oxidized_navigation",
  "serde",
@@ -6825,11 +6776,11 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "b43a029251c55e00d44930e24b78f5b471b3e75fa9c88c30ecb816db08646b93"
 dependencies = [
  "ahash",
- "ecolor 0.28.1",
- "emath 0.28.1",
+ "ecolor",
+ "emath",
  "enum_dispatch",
  "enumset",
- "epaint 0.28.1",
+ "epaint",
  "glam 0.28.0",
  "mint",
 ]

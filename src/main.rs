@@ -1,6 +1,6 @@
 use core::iter::Iterator;
 use std::env;
-use std::path::Path;
+use std::path::{Path, PathBuf};
 use bevy::diagnostic::{EntityCountDiagnosticsPlugin, FrameTimeDiagnosticsPlugin};
 use bevy::pbr::DirectionalLightShadowMap;
 use bevy::prelude::{info, warn, App, Camera, Camera3dBundle, Commands, DefaultPlugins, Startup, Transform, Vec3};
@@ -14,17 +14,16 @@ mod world_editor;
 fn main() {
     let mut app = App::new();
     app.add_plugins((DefaultPlugins,
-                      #[cfg(feature = "dev")]
-                      EditorPlugin::new(),
-                      SavePlugins,
-                      DefaultPickingPlugins,
-                      #[cfg(feature = "dev")]
-                      FrameTimeDiagnosticsPlugin::default(),
-                      #[cfg(feature = "dev")]
-                      EntityCountDiagnosticsPlugin::default(),
-                      WorldEditorPlugin::default(),
-                     ),
-        )
+                     #[cfg(feature = "dev")]
+                     EditorPlugin::new(),
+                     SavePlugins,
+                     DefaultPickingPlugins,
+                     #[cfg(feature = "dev")]
+                     FrameTimeDiagnosticsPlugin::default(),
+                     #[cfg(feature = "dev")]
+                     EntityCountDiagnosticsPlugin::default(),
+
+                    ))
         .insert_resource(DirectionalLightShadowMap { size: 4096 })
         .add_systems(Startup, setup_ui);
 
@@ -36,8 +35,10 @@ fn main() {
         assert!(args.len() > zone_root_arg_index + 1, "Expected argument after --zone-root");
         let path = Path::new(&args[zone_root_arg_index + 1]);
         assert!(path.exists(), "Expected folder to exist but \"{}\" doesn't exist", path.to_str().unwrap());
+        app.add_plugins(WorldEditorPlugin { zone_root: Some(PathBuf::from(path)) });
     } else {
         warn!("No --zone-root selected, starting editor only");
+        app.add_plugins(WorldEditorPlugin::default());
     }
 
     app.run();
