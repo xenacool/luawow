@@ -1,7 +1,7 @@
 # Luawow
-Luawow is a 2.5D coding game designed as a first introduction to programming.
+Luawow is a 2.5D coding sandbox designed as a first introduction to programming.
 
-Players are capable of creating and manipulating elements by spending mana. 
+
 
 # (Original template)Foxtrot
 

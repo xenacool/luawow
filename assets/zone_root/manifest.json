@@ -1,4 +1,236 @@
 {
   "entities": {},
-  "resources": {}
+  "resources": {
+    "luawow::save_loader::ZoneLoader": {
+      "manifest": {
+        "zones_with_transforms": [
+          {
+            "transform": {
+              "translation": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+              },
+              "rotation": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0,
+                "w": 1.0
+              },
+              "scale": {
+                "x": 1.0,
+                "y": 1.0,
+                "z": 1.0
+              }
+            },
+            "zone_manifest": {
+              "size_grid_x": 0,
+              "size_grid_y": 0,
+              "size_grid_z": 0,
+              "tileset": [],
+              "grid_values": [],
+              "dynamic_scene_path": null
+            }
+          },
+          {
+            "transform": {
+              "translation": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+              },
+              "rotation": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0,
+                "w": 1.0
+              },
+              "scale": {
+                "x": 1.0,
+                "y": 1.0,
+                "z": 1.0
+              }
+            },
+            "zone_manifest": {
+              "size_grid_x": 0,
+              "size_grid_y": 0,
+              "size_grid_z": 0,
+              "tileset": [],
+              "grid_values": [],
+              "dynamic_scene_path": null
+            }
+          },
+          {
+            "transform": {
+              "translation": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+              },
+              "rotation": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0,
+                "w": 1.0
+              },
+              "scale": {
+                "x": 1.0,
+                "y": 1.0,
+                "z": 1.0
+              }
+            },
+            "zone_manifest": {
+              "size_grid_x": 0,
+              "size_grid_y": 0,
+              "size_grid_z": 0,
+              "tileset": [],
+              "grid_values": [],
+              "dynamic_scene_path": null
+            }
+          },
+          {
+            "transform": {
+              "translation": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+              },
+              "rotation": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0,
+                "w": 1.0
+              },
+              "scale": {
+                "x": 1.0,
+                "y": 1.0,
+                "z": 1.0
+              }
+            },
+            "zone_manifest": {
+              "size_grid_x": 0,
+              "size_grid_y": 0,
+              "size_grid_z": 0,
+              "tileset": [],
+              "grid_values": [],
+              "dynamic_scene_path": null
+            }
+          },
+          {
+            "transform": {
+              "translation": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+              },
+              "rotation": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0,
+                "w": 1.0
+              },
+              "scale": {
+                "x": 1.0,
+                "y": 1.0,
+                "z": 1.0
+              }
+            },
+            "zone_manifest": {
+              "size_grid_x": 0,
+              "size_grid_y": 0,
+              "size_grid_z": 0,
+              "tileset": [],
+              "grid_values": [],
+              "dynamic_scene_path": null
+            }
+          },
+          {
+            "transform": {
+              "translation": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+              },
+              "rotation": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0,
+                "w": 1.0
+              },
+              "scale": {
+                "x": 1.0,
+                "y": 1.0,
+                "z": 1.0
+              }
+            },
+            "zone_manifest": {
+              "size_grid_x": 0,
+              "size_grid_y": 0,
+              "size_grid_z": 0,
+              "tileset": [],
+              "grid_values": [],
+              "dynamic_scene_path": null
+            }
+          },
+          {
+            "transform": {
+              "translation": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+              },
+              "rotation": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0,
+                "w": 1.0
+              },
+              "scale": {
+                "x": 1.0,
+                "y": 1.0,
+                "z": 1.0
+              }
+            },
+            "zone_manifest": {
+              "size_grid_x": 0,
+              "size_grid_y": 0,
+              "size_grid_z": 0,
+              "tileset": [],
+              "grid_values": [],
+              "dynamic_scene_path": null
+            }
+          },
+          {
+            "transform": {
+              "translation": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+              },
+              "rotation": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0,
+                "w": 1.0
+              },
+              "scale": {
+                "x": 1.0,
+                "y": 1.0,
+                "z": 1.0
+              }
+            },
+            "zone_manifest": {
+              "size_grid_x": 0,
+              "size_grid_y": 0,
+              "size_grid_z": 0,
+              "tileset": [],
+              "grid_values": [],
+              "dynamic_scene_path": null
+            }
+          }
+        ]
+      },
+      "dirty": false
+    }
+  }
 }

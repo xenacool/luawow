@@ -2,34 +2,34 @@ use std::path::PathBuf;
 use bevy::ecs::system::RunSystemOnce;
 use egui_file_dialog::FileDialog;
 
-use bevy::prelude::{info, Resource, Reflect, ReflectResource, ResMut, Transform, World};
+use bevy::prelude::{info, Resource, Reflect, ReflectResource, ResMut, Transform, World, Res};
 use bevy::utils::HashMap;
 use bevy_editor_pls::editor_window::{EditorWindow, EditorWindowContext};
 use bevy_editor_pls::egui::Ui;
-use bevy_save::{Backend, Error, FileIO, JSONFormat, Pipeline, Snapshot, SnapshotBuilder, WorldSaveableExt};
+use bevy_save::{Error, FileIO, JSONFormat, Pipeline, Snapshot, SnapshotBuilder, WorldSaveableExt};
 use bevy::app::{App, Plugin};
 use bevy_editor_pls::{egui, AddEditorWindow};
 use bevy_editor_pls::editor::Editor;
 
-impl Default for WorldEditorPlugin {
+impl Default for ZoneSaveLoaderPlugin {
     fn default() -> Self {
-        WorldEditorPlugin {
+        ZoneSaveLoaderPlugin {
             zone_root: None,
         }
     }
 }
-pub struct WorldEditorPlugin {
+pub struct ZoneSaveLoaderPlugin {
     pub zone_root: Option<PathBuf>,
 }
 
-impl Plugin for WorldEditorPlugin {
+impl Plugin for ZoneSaveLoaderPlugin {
     fn build(&self, app: &mut App) {
         app
-            .insert_resource(ZoneLoader::default())
             .insert_resource(ZoneLoaderEditorState {
                 boot_zone_root: self.zone_root.clone(),
                 ..Default::default()
             })
+            .insert_resource(ZoneLoader::default())
             .register_type::<ZoneLoader>()
             .register_type::<ZoneLoaderEditorState>()
             .register_type::<TileData>()
@@ -89,6 +89,7 @@ impl Default for WorldManifest {
     }
 }
 
+// Zone loaders are the main data type for the campaign
 #[derive(Resource, Reflect, Default)]
 #[reflect(Resource)]
 pub struct ZoneLoader {
@@ -101,7 +102,7 @@ pub struct ZoneLoader {
 pub struct ZoneLoaderEditorState {
     pub boot_zone_root: Option<PathBuf>,
     pub manifest: WorldManifest,
-    pub focused_zone_index:  usize,
+    pub focused_zone_index: usize,
 }
 
 #[derive(Default)]
@@ -149,41 +150,43 @@ impl EditorWindow for WorldEditorWindow {
             state.file_dialog.select_directory();
         }
         if let Some(folder) = &state.selected_file {
-            // assert!(folder.is_dir(), "expected folder found file aborting");
+            assert!(folder.is_dir(), "expected folder found file aborting");
             ui.label(format!("Selected folder {:?}", folder));
             let folder_exists = folder.exists();
             let manifest_path = folder.join("manifest");
             let manifest_path_str = manifest_path.to_str().unwrap().to_string();
-
             let manifest_exists = folder.join("manifest.json").exists();
             if folder_exists && manifest_exists {
                 let mut zone_loader_editor_state = world.resource_mut::<ZoneLoaderEditorState>();
-                ui.label("Focused zone index");
-                ui.add(egui::Slider::new(&mut zone_loader_editor_state.focused_zone_index, 0usize..=100));
+                ui.label("Focused zone index (mem)");
+                let zone_count = zone_loader_editor_state.manifest.zones_with_transforms.len();
+                ui.add(egui::Slider::new(&mut zone_loader_editor_state.focused_zone_index, 0usize..=zone_count));
 
-                if ui.button("load zone (from disk to mem)").clicked() {
-                    world.load(ZoneLoaderPipeline { file: manifest_path_str.clone() }).expect("failed to load zone collection");
-                    world.run_system_once(|mut zone_loader: ResMut<ZoneLoader>| {
-                        info!("marking zone loader as dirty");
-                        zone_loader.dirty = true;
+                if ui.button("add zone to editor (mem)").clicked() {
+                    world.run_system_once(|mut zone_loader_editor_state: ResMut<ZoneLoaderEditorState>| {
+                        info!("Adding zone to editor");
+                        zone_loader_editor_state.manifest.zones_with_transforms.push(TransformZoneManifest::default());
                     });
                 }
-                if ui.button("add zone (in-mem)").clicked() {
-                    world.run_system_once(|mut zone_loader: ResMut<ZoneLoader>| {
-                        zone_loader.manifest.zones_with_transforms.push(TransformZoneManifest::default());
-                        zone_loader.dirty = true;
+                if ui.button("load loader manifest from disk (mem)").clicked() {
+                    info!("loading with file {}", manifest_path_str.clone());
+                    world.load(ZoneLoaderPipeline { file: manifest_path_str.clone() }).expect("failed to load zone collection");
+                }
+                if ui.button("load editor manifest from loader (mem)").clicked() {
+                    world.run_system_once(|mut zone_loader_editor_state: ResMut<ZoneLoaderEditorState>, zone_loader: Res<ZoneLoader>| {
+                        zone_loader_editor_state.manifest = zone_loader.manifest.clone();
                     });
                 }
             }
             if folder_exists {
-                if ui.button("create or overwrite active root manifest (disk)").clicked() {
-                    info!("saving with file {}", manifest_path_str.clone());
-                    world.save(ZoneLoaderPipeline { file: manifest_path_str }).expect("failed to save zone collection");
-                }
-                if ui.button("copy editor to root manifest (in-mem)").clicked() {
+                if ui.button("prepare in-memory manifest for persistence (mem)").clicked() {
                     world.run_system_once(|mut zone_loader: ResMut<ZoneLoader>, zone_loader_editor_state: ResMut<ZoneLoaderEditorState>| {
                         zone_loader.manifest = zone_loader_editor_state.manifest.clone();
                     });
+                }
+                if ui.button("write manifest to persistence (disk)").clicked() {
+                    info!("saving with file {}", manifest_path_str.clone());
+                    world.save(ZoneLoaderPipeline { file: manifest_path_str.clone() }).expect("failed to save zone collection");
                 }
             }
         }
@@ -200,13 +203,23 @@ impl EditorWindow for WorldEditorWindow {
         let selected_file_path = zone_loader_editor_state.boot_zone_root.clone();
         let mut editor = app.world_mut().get_resource_mut::<Editor>().unwrap();
         let state = editor.window_state_mut::<Self>().unwrap();
-        state.selected_file = selected_file_path;
+        state.selected_file = selected_file_path.clone();
+
+        if let Some(manifest_path) = selected_file_path {
+            let file = manifest_path.as_path().join("manifest").to_str().unwrap().to_string();
+            info!("loading with file {}", file);
+            app.world_mut().load(ZoneLoaderPipeline { file }).expect("failed to load zone collection");
+            app.world_mut().run_system_once(|mut zone_loader_editor_state: ResMut<ZoneLoaderEditorState>, zone_loader: Res<ZoneLoader>| {
+                zone_loader_editor_state.manifest = zone_loader.manifest.clone();
+            });
+        }
     }
 }
 
+#[test]
 mod test {
     use bevy::ecs::system::RunSystemOnce;
-    use crate::world_editor::{TileData, TransformZoneManifest, WorldManifest, ZoneLoader, ZoneLoaderPipeline, ZoneManifest};
+    use crate::save_loader::{TileData, TransformZoneManifest, WorldManifest, ZoneLoader, ZoneLoaderPipeline, ZoneManifest};
     use bevy::prelude::{App, Res};
     use bevy::MinimalPlugins;
     use bevy_save::{SavePlugins, WorldSaveableExt};

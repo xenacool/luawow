@@ -7,9 +7,9 @@ use bevy::prelude::{info, warn, App, Camera, Camera3dBundle, Commands, DefaultPl
 use bevy_editor_pls::EditorPlugin;
 use bevy_mod_picking::DefaultPickingPlugins;
 use bevy_save::SavePlugins;
-use world_editor::WorldEditorPlugin;
+use save_loader::ZoneSaveLoaderPlugin;
 
-mod world_editor;
+mod save_loader;
 
 fn main() {
     let mut app = App::new();
@@ -35,10 +35,10 @@ fn main() {
         assert!(args.len() > zone_root_arg_index + 1, "Expected argument after --zone-root");
         let path = Path::new(&args[zone_root_arg_index + 1]);
         assert!(path.exists(), "Expected folder to exist but \"{}\" doesn't exist", path.to_str().unwrap());
-        app.add_plugins(WorldEditorPlugin { zone_root: Some(PathBuf::from(path)) });
+        app.add_plugins(ZoneSaveLoaderPlugin { zone_root: Some(PathBuf::from(path)) });
     } else {
         warn!("No --zone-root selected, starting editor only");
-        app.add_plugins(WorldEditorPlugin::default());
+        app.add_plugins(ZoneSaveLoaderPlugin::default());
     }
 
     app.run();

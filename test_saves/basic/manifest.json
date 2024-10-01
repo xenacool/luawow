@@ -1,7 +1,7 @@
 {
   "entities": {},
   "resources": {
-    "luawow::world_editor::ZoneLoader": {
+    "luawow::save_loader::ZoneLoader": {
       "manifest": {
         "zones_with_transforms": []
       },
