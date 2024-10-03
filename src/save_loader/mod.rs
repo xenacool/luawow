@@ -2,14 +2,16 @@ use std::path::PathBuf;
 use bevy::ecs::system::RunSystemOnce;
 use egui_file_dialog::FileDialog;
 
-use bevy::prelude::{info, Resource, Reflect, ReflectResource, ResMut, Transform, World, Res};
+use bevy::prelude::{info, Resource, Reflect, ReflectResource, ResMut, Transform, World, Res, Query, Component, ReflectComponent, Commands};
 use bevy::utils::HashMap;
 use bevy_editor_pls::editor_window::{EditorWindow, EditorWindowContext};
 use bevy_editor_pls::egui::Ui;
 use bevy_save::{Error, FileIO, JSONFormat, Pipeline, Snapshot, SnapshotBuilder, WorldSaveableExt};
 use bevy::app::{App, Plugin};
+use bevy::pbr::PbrBundle;
 use bevy_editor_pls::{egui, AddEditorWindow};
 use bevy_editor_pls::editor::Editor;
+use bevy_mod_picking::PickableBundle;
 
 impl Default for ZoneSaveLoaderPlugin {
     fn default() -> Self {
@@ -31,6 +33,7 @@ impl Plugin for ZoneSaveLoaderPlugin {
             })
             .insert_resource(ZoneLoader::default())
             .register_type::<ZoneLoader>()
+            .register_type::<DebugGrid>()
             .register_type::<ZoneLoaderEditorState>()
             .register_type::<TileData>()
             .register_type::<ZoneManifest>()
@@ -47,6 +50,15 @@ pub struct TileData {
     tile_data_path: String,
     transform: Transform,
     dynamic_map: HashMap<String, String>,
+}
+
+#[derive(Default, Component, Reflect, Clone)]
+#[reflect(Component)]
+pub struct DebugGrid {
+    size_grid_x: u32,
+    size_grid_y: u32,
+    size_grid_z: u32,
+    zone_id: u32,
 }
 
 #[derive(Resource, Reflect, Default, Clone)]
@@ -102,7 +114,7 @@ pub struct ZoneLoader {
 pub struct ZoneLoaderEditorState {
     pub boot_zone_root: Option<PathBuf>,
     pub manifest: WorldManifest,
-    pub focused_zone_index: usize,
+    pub focused_zone_index: u32,
 }
 
 #[derive(Default)]
@@ -142,9 +154,9 @@ impl Pipeline for ZoneLoaderPipeline {
 
 impl EditorWindow for WorldEditorWindow {
     type State = WorldEditorWindowState;
-    const NAME: &'static str = "Zone editor window";
+    const NAME: &'static str = "Zone loader editor state";
 
-    fn ui(world: &mut World, mut cx: EditorWindowContext, ui: &mut Ui) {
+    fn ui(mut world: &mut World, mut cx: EditorWindowContext, ui: &mut Ui) {
         let state = cx.state_mut::<WorldEditorWindow>().unwrap();
         if ui.button("Select Zone Root Folder").clicked() {
             state.file_dialog.select_directory();
@@ -159,34 +171,75 @@ impl EditorWindow for WorldEditorWindow {
             if folder_exists && manifest_exists {
                 let mut zone_loader_editor_state = world.resource_mut::<ZoneLoaderEditorState>();
                 ui.label("Focused zone index (mem)");
-                let zone_count = zone_loader_editor_state.manifest.zones_with_transforms.len();
-                ui.add(egui::Slider::new(&mut zone_loader_editor_state.focused_zone_index, 0usize..=zone_count));
+                let actual_zone_count = zone_loader_editor_state.manifest.zones_with_transforms.len() as u32;
+                let editor_max_zone_count = actual_zone_count.max(1);
+                let focused_zone_index = zone_loader_editor_state.focused_zone_index.clone();
+                ui.add(egui::Slider::new(&mut zone_loader_editor_state.focused_zone_index, 0u32..=(editor_max_zone_count - 1)));
+                if focused_zone_index < actual_zone_count {
+                    let mut active_transform_zone_manifest: &mut TransformZoneManifest = &mut zone_loader_editor_state.manifest.zones_with_transforms[focused_zone_index as usize];
+                    ui.label("grid size x");
+                    let changed_x = ui.add(egui::Slider::new(&mut active_transform_zone_manifest.zone_manifest.size_grid_x, 0..=1000));
+                    ui.label("grid size y");
+                    let changed_y = ui.add(egui::Slider::new(&mut active_transform_zone_manifest.zone_manifest.size_grid_y, 0..=1000));
+                    ui.label("grid size z");
+                    let changed_z = ui.add(egui::Slider::new(&mut active_transform_zone_manifest.zone_manifest.size_grid_z, 0..=1000));
 
-                if ui.button("add zone to editor (mem)").clicked() {
+                    let grid_x = active_transform_zone_manifest.zone_manifest.size_grid_x;
+                    let grid_y = active_transform_zone_manifest.zone_manifest.size_grid_y;
+                    let grid_z = active_transform_zone_manifest.zone_manifest.size_grid_z;
+                    let focused_zone_index = zone_loader_editor_state.focused_zone_index;
+                    if changed_x.changed() || changed_y.changed() || changed_z.changed() {
+                        world.run_system_once(move |mut commands: ResMut<Commands>, mut debug_grid: Query<&mut DebugGrid>|
+                            for grid in debug_grid.iter_mut() {
+                                {
+                                    if grid.zone_id == focused_zone_index {
+                                        commands.spawn((
+                                            PbrBundle::default(),
+                                            PickableBundle::default(),
+                                        ));
+                                        for x in 0..grid_x {
+                                            for y in 0..grid_y {
+                                                for z in 0..grid_z {}
+                                            }
+                                        }
+                                    }
+                                };
+                            });
+                    };
+                }
+                if ui.button("removed focused zone").clicked() {
+                    world.run_system_once(move |mut zone_loader_editor_state: ResMut<ZoneLoaderEditorState>| {
+                        let focused_zone_index = zone_loader_editor_state.focused_zone_index;
+                        if zone_loader_editor_state.focused_zone_index < zone_loader_editor_state.manifest.zones_with_transforms.len() as u32 {
+                            zone_loader_editor_state.manifest.zones_with_transforms.remove(focused_zone_index as usize);
+                        }
+                    });
+                }
+                if ui.button("append zone to loader editor (mem)").clicked() {
                     world.run_system_once(|mut zone_loader_editor_state: ResMut<ZoneLoaderEditorState>| {
                         info!("Adding zone to editor");
                         zone_loader_editor_state.manifest.zones_with_transforms.push(TransformZoneManifest::default());
                     });
                 }
-                if ui.button("load loader manifest from disk (mem)").clicked() {
+                if ui.button("read loader from disk (mem)").clicked() {
                     info!("loading with file {}", manifest_path_str.clone());
                     world.load(ZoneLoaderPipeline { file: manifest_path_str.clone() }).expect("failed to load zone collection");
                 }
-                if ui.button("load editor manifest from loader (mem)").clicked() {
-                    world.run_system_once(|mut zone_loader_editor_state: ResMut<ZoneLoaderEditorState>, zone_loader: Res<ZoneLoader>| {
-                        info!("loading with manifest zones {}", zone_loader.manifest.zones_with_transforms.len());
-                        zone_loader_editor_state.manifest = zone_loader.manifest.clone();
-                    });
-                }
             }
             if folder_exists {
-                if ui.button("prepare in-memory manifest for persistence (mem)").clicked() {
+                if ui.button("copy loader editor to loader (mem)").clicked() {
                     world.run_system_once(|mut zone_loader: ResMut<ZoneLoader>, zone_loader_editor_state: Res<ZoneLoaderEditorState>| {
                         zone_loader.manifest = zone_loader_editor_state.manifest.clone();
                         zone_loader.dirty = false;
                     });
                 }
-                if ui.button("write manifest to persistence (disk)").clicked() {
+                if ui.button("copy loader to loader editor (mem)").clicked() {
+                    world.run_system_once(|mut zone_loader: ResMut<ZoneLoader>, mut zone_loader_editor_state: ResMut<ZoneLoaderEditorState>| {
+                        zone_loader_editor_state.manifest = zone_loader.manifest.clone();
+                        zone_loader.dirty = false;
+                    });
+                }
+                if ui.button("write loader to persistence (disk)").clicked() {
                     info!("saving with file {}", manifest_path_str.clone());
                     world.save(ZoneLoaderPipeline { file: manifest_path_str.clone() }).expect("failed to save zone collection");
                 }
@@ -218,7 +271,10 @@ impl EditorWindow for WorldEditorWindow {
     }
 }
 
-#[test]
+fn draw_debug(world: &mut &mut World, x: u32, y: u32, z: u32) {
+    todo!()
+}
+
 mod test {
     use bevy::ecs::system::RunSystemOnce;
     use crate::save_loader::{TileData, TransformZoneManifest, WorldManifest, ZoneLoader, ZoneLoaderPipeline, ZoneManifest};

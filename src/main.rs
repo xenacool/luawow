@@ -3,7 +3,7 @@ use std::env;
 use std::path::{Path, PathBuf};
 use bevy::diagnostic::{EntityCountDiagnosticsPlugin, FrameTimeDiagnosticsPlugin};
 use bevy::pbr::DirectionalLightShadowMap;
-use bevy::prelude::{info, warn, App, Camera, Camera3dBundle, Commands, DefaultPlugins, Startup, Transform, Vec3};
+use bevy::prelude::{info, warn, App, Camera, Camera3dBundle, Commands, DefaultPlugins, PbrBundle, Startup, Transform, Vec3};
 use bevy_editor_pls::EditorPlugin;
 use bevy_mod_picking::DefaultPickingPlugins;
 use bevy_save::SavePlugins;
@@ -45,6 +45,7 @@ fn main() {
 }
 
 fn setup_ui(mut commands: Commands) {
+    info!("spawning game camera");
     let camera_position = Vec3::new(0., 3. * 7.0f32, 0.75 * 70.0f32);
     commands.spawn(Camera3dBundle {
         camera: Camera {

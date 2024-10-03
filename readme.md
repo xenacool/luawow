@@ -7,7 +7,7 @@ Luawow is a 2.5D coding sandbox designed as a first introduction to programming.
 
 The all-in-one Bevy 3D game template.
 
-https://user-images.githubusercontent.com/9047632/226387411-70f662de-0681-47ff-b1d1-ccc59b02fa7b.mov
+[//]: # (https://user-images.githubusercontent.com/9047632/226387411-70f662de-0681-47ff-b1d1-ccc59b02fa7b.mov)
 
 ## What does this template give you?
 
